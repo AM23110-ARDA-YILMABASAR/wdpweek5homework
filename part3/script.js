@@ -6,43 +6,49 @@ const questionText = document.getElementById("question");
 const optionsContainer = document.getElementById("options");
 const nextBtn = document.getElementById("nextBtn");
 const resultBox = document.getElementById("result");
+const questionCount = document.getElementById("question-count");
 
+// Fetch questions
 fetch("questions.json")
   .then(res => res.json())
   .then(data => {
     questions = data;
     showQuestion();
+  })
+  .catch(error => {
+    questionText.textContent = "Failed to load questions.";
+    console.error("Error loading quiz data:", error);
   });
 
 function showQuestion() {
   clearOptions();
-  document.getElementById("question-count").textContent =
-    \`Question \${currentQuestionIndex + 1} of \${questions.length}\`;
-  const q = questions[currentQuestionIndex];
-  questionText.textContent = q.question;
+  const current = questions[currentQuestionIndex];
+  questionCount.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+  questionText.textContent = current.question;
 
-  q.options.forEach((option, index) => {
-    const button = document.createElement("button");
-    button.textContent = option;
-    button.classList.add("option");
-    button.onclick = () => checkAnswer(index);
-    optionsContainer.appendChild(button);
+  current.options.forEach((option, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.className = "option";
+    btn.addEventListener("click", () => checkAnswer(index));
+    optionsContainer.appendChild(btn);
   });
 
   nextBtn.disabled = true;
 }
 
 function checkAnswer(selectedIndex) {
-  const correct = questions[currentQuestionIndex].answer;
-  if (selectedIndex === correct) {
-    score++;
-  }
-  nextBtn.disabled = false;
-  Array.from(optionsContainer.children).forEach((btn, i) => {
+  const correctIndex = questions[currentQuestionIndex].answer;
+  const optionButtons = optionsContainer.querySelectorAll("button");
+
+  optionButtons.forEach((btn, i) => {
     btn.disabled = true;
-    if (i === correct) btn.style.backgroundColor = "#a4edba";
-    if (i === selectedIndex && i !== correct) btn.style.backgroundColor = "#f5a3a3";
+    if (i === correctIndex) btn.style.backgroundColor = "#a4edba";
+    else if (i === selectedIndex) btn.style.backgroundColor = "#f5a3a3";
   });
+
+  if (selectedIndex === correctIndex) score++;
+  nextBtn.disabled = false;
 }
 
 function clearOptions() {
@@ -61,5 +67,5 @@ nextBtn.addEventListener("click", () => {
 
 function showResult() {
   document.querySelector(".quiz-box").innerHTML =
-    \`<h2>Your score: \${score} / \${questions.length}</h2>\`;
+    `<h2>Your score: ${score} / ${questions.length}</h2>`;
 }
